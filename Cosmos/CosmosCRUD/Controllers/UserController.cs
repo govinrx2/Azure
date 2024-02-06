@@ -1,0 +1,45 @@
+using CosmosCRUD.Models;
+using CosmosCRUD.Services;
+using Microsoft.AspNetCore.Mvc;
+
+
+namespace CosmosCRUD.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class UserController(ILogger<UserController> logger) : ControllerBase
+{
+    private readonly ILogger<UserController> _logger = logger;
+
+    private IUserService _userService = null;
+
+    [HttpGet()]
+    [Route("{id}")]
+    public IActionResult Get(string id)
+    {
+        return Ok(_userService.ReadUser(id));
+    }
+
+    [HttpPost()]
+    [Route("")]
+    public IActionResult Post([FromBody] User user)
+    {
+        return Ok(_userService.CreateUser(user));
+    }
+
+    [HttpPut()]
+    [Route("{id}")]
+    public IActionResult Update(string id, [FromBody] User user)
+    {
+        if (id!= user.UserID) return BadRequest();
+        return Ok(_userService.UpdateUser(id, user));
+    }
+
+    [HttpDelete()]
+    [Route("{id}")]
+    public IActionResult Delete(string id)
+    {
+        _userService.DeleteUser(id);
+        return Ok();
+    }
+}
