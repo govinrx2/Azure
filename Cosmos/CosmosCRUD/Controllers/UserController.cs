@@ -39,7 +39,6 @@ public class UserController(ILogger<UserController> logger, IUserService userSer
     [Route("{id}")]
     public IActionResult Delete(string id)
     {
-        _userService.DeleteUser(id);
-        return Ok();
+        return Ok(_userService.DeleteUser(id));
     }
 }

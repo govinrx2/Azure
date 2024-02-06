@@ -4,6 +4,7 @@ using CosmosCRUD.Models;
 using User = CosmosCRUD.Models.User;
 using System.Net;
 using System.Collections.Generic;
+using Microsoft.Azure.Cosmos.Linq;
 
 namespace CosmosCRUD.Services;
 
@@ -16,12 +17,13 @@ public class CosmosDBUserService(ILogger<CosmosDBUserService> logger, CosmosDBSe
     private readonly Container _container = cosmosDBService.GetContainer(_containerName);
     
 
-    public User ReadUser(string userId)
+    public User? ReadUser(string userId)
     {
         // "Select * from u where u.UserID = @userId AND u.Type='User'";
-        return _container.GetItemLinqQueryable<User>()
+        var userFeed = _container.GetItemLinqQueryable<User>()
                     .Where(u => u.UserID == userId && u.Type == "User")
-                    .FirstOrDefault(); // verify FirstOrDefault is supported
+                    .ToFeedIterator();
+        return userFeed.HasMoreResults ? userFeed.ReadNextAsync().Result.FirstOrDefault() : null;
 
         // return  _container.ReadItemAsync<User>(userId, new PartitionKey(_partitionKey)).Result.Resource;
     }
@@ -33,14 +35,18 @@ public class CosmosDBUserService(ILogger<CosmosDBUserService> logger, CosmosDBSe
     //     return  _container.ReadManyItemsAsync<User>(items).Result.Resource.ToList();
     // }
 
-    public User CreateUser(User user)
+    public User? CreateUser(User user)
     {
-        return _container.CreateItemAsync(user, new PartitionKey(_partitionKey)).Result.Resource;
+        var result = _container.CreateItemAsync(user, new PartitionKey(_partitionKey)).Result;
+        return result.StatusCode == HttpStatusCode.Created? result.Resource : null;
     }
 
-    public User UpdateUser(User user)
+    public User? UpdateUser(User user)
     {
-        return _container.UpsertItemAsync(user, new PartitionKey(_partitionKey)).Result.Resource;
+        var result = _container.UpsertItemAsync(user, new PartitionKey(_partitionKey)).Result;
+        return result.StatusCode == HttpStatusCode.OK 
+                    || result.StatusCode == HttpStatusCode.Created? 
+                        result.Resource : null;
     }
 
     public bool DeleteUser(string userId)

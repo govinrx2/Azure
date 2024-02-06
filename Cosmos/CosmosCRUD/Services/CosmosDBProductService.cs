@@ -11,9 +11,10 @@ public class CosmosDBProductService(ILogger<CosmosDBProductService> logger, Cosm
     private const string _containerName = "Prosumers";
     private readonly Container _container = cosmosDBService.GetContainer(_containerName);
 
-    public Product CreateProduct(Product product)
+    public Product? CreateProduct(Product product)
     {
-        return _container.CreateItemAsync(product, new PartitionKey(_partitionKey)).Result.Resource;
+        var result = _container.CreateItemAsync(product, new PartitionKey(_partitionKey)).Result;
+        return result.StatusCode == HttpStatusCode.Created? result.Resource : null;
     }
 
     public bool DeleteProduct(string sku)
@@ -21,7 +22,7 @@ public class CosmosDBProductService(ILogger<CosmosDBProductService> logger, Cosm
         return _container.DeleteItemAsync<Product>(sku, new PartitionKey(_partitionKey)).Result.StatusCode == HttpStatusCode.OK;
     }
 
-    public Product ReadProduct(string sku)
+    public Product? ReadProduct(string sku)
     {
         return _container.GetItemLinqQueryable<Product>()
                     .Where(p =>  p.SkuId== sku && p.Type == "Product_Asset")
@@ -30,8 +31,11 @@ public class CosmosDBProductService(ILogger<CosmosDBProductService> logger, Cosm
         // return  _container.ReadItemAsync<Product>(sku, new PartitionKey(_partitionKey)).Result.Resource;
     }
 
-    public Product UpdateProduct(Product product)
+    public Product? UpdateProduct(Product product)
     {
-        return _container.UpsertItemAsync(product, new PartitionKey(_partitionKey)).Result.Resource;
+        var result = _container.UpsertItemAsync(product, new PartitionKey(_partitionKey)).Result;
+        return result.StatusCode == HttpStatusCode.OK 
+                    || result.StatusCode == HttpStatusCode.Created? 
+                        result.Resource : null;
     }
 }
