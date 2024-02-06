@@ -11,11 +11,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<IUserService, CosmosDBUserService>();
-// builder.Services.AddSingleton<CosmosClient>(
-//     new CosmosClient(
-//             builder.Configuration["Cosmos:Endpoint"], 
-//                 builder.Configuration["Cosmos:Key"])
-//     );
+builder.Services.AddSingleton<CosmosClient>(
+    new CosmosClient(
+            builder.Configuration["Cosmos:Endpoint"], 
+                builder.Configuration["Cosmos:Key"])
+    );
+builder.Services.AddSingleton<IProductService, CosmosDBProductService>();
+builder.Services.AddSingleton<CosmosDBService>();
 
 
 var app = builder.Build();

@@ -32,7 +32,7 @@ public class UserController(ILogger<UserController> logger) : ControllerBase
     public IActionResult Update(string id, [FromBody] User user)
     {
         if (id!= user.UserID) return BadRequest();
-        return Ok(_userService.UpdateUser(id, user));
+        return Ok(_userService.UpdateUser(user));
     }
 
     [HttpDelete()]

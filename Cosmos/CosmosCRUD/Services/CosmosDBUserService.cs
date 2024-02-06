@@ -3,51 +3,44 @@ using Microsoft.Azure.Cosmos;
 using CosmosCRUD.Models;
 using User = CosmosCRUD.Models.User;
 using System.Net;
+using System.Collections.Generic;
 
 namespace CosmosCRUD.Services;
 
 
-public class CosmosDBUserService: IUserService
+public class CosmosDBUserService(ILogger<CosmosDBUserService> logger, CosmosDBService cosmosDBService) : IUserService
 {
-    private readonly ILogger<CosmosDBUserService> _logger;
-    private readonly CosmosClient _cosmosClient;
-    private readonly Database _database;
-    private readonly Container _container;
-
-    public CosmosDBUserService(ILogger<CosmosDBUserService> logger)
-    {
-        _logger = logger;
-        _cosmosClient = new CosmosClient(
-             "Cosmos:Endpoint", 
-                "Cosmos:Key");
-        _database = _cosmosClient.CreateDatabaseIfNotExistsAsync("Prosumers").Result;
-        _container = _database.CreateContainerIfNotExistsAsync("Users", "/UserID").Result;
-    }
+    private readonly ILogger<CosmosDBUserService> _logger = logger;
+    private const string _partitionKey = "UserID";
+    private const string _containerName = "Users";
+    private readonly Container _container = cosmosDBService.GetContainerAsync(_containerName, _partitionKey).Result;
+    
 
     public User ReadUser(string userId)
     {
-        return  _container.ReadItemAsync<User>(userId, new PartitionKey(userId)).Result.Resource;
+        return  _container.ReadItemAsync<User>(userId, new PartitionKey(_partitionKey)).Result.Resource;
     }
 
-    public IList<User> ReadUsers(IList<string>  userIds)
-    {
-        IReadOnlyList<(string, PartitionKey)> items = [];
-        return  _container.ReadManyItemsAsync<User>(items).Result.Resource.ToList();
-    }
+    // public IList<User> ReadUsers(List<string>  userIds)
+    // {
+    //     List<(string, PartitionKey)> items = [];
+    //     userIds.ForEach(userId => items.Add((userId, new PartitionKey(_partitionKey))));
+    //     return  _container.ReadManyItemsAsync<User>(items).Result.Resource.ToList();
+    // }
 
     public User CreateUser(User user)
     {
-        return _container.CreateItemAsync(user, new PartitionKey(user.UserID)).Result.Resource;
+        return _container.CreateItemAsync(user, new PartitionKey(_partitionKey)).Result.Resource;
     }
 
-    public User UpdateUser(string userId, User user)
+    public User UpdateUser(User user)
     {
-        return _container.UpsertItemAsync(user, new PartitionKey(userId)).Result.Resource;
+        return _container.UpsertItemAsync(user, new PartitionKey(_partitionKey)).Result.Resource;
     }
 
     public bool DeleteUser(string userId)
     {
-        return _container.DeleteItemAsync<User>(userId, new PartitionKey(userId)).Result.StatusCode == HttpStatusCode.OK;
+        return _container.DeleteItemAsync<User>(userId, new PartitionKey(_partitionKey)).Result.StatusCode == HttpStatusCode.OK;
     }
 
 }
