@@ -12,13 +12,18 @@ public class CosmosDBUserService(ILogger<CosmosDBUserService> logger, CosmosDBSe
 {
     private readonly ILogger<CosmosDBUserService> _logger = logger;
     private const string _partitionKey = "UserID";
-    private const string _containerName = "Users";
-    private readonly Container _container = cosmosDBService.GetContainerAsync(_containerName, _partitionKey).Result;
+    private const string _containerName = "Prosumers";
+    private readonly Container _container = cosmosDBService.GetContainer(_containerName);
     
 
     public User ReadUser(string userId)
     {
-        return  _container.ReadItemAsync<User>(userId, new PartitionKey(_partitionKey)).Result.Resource;
+        // "Select * from u where u.UserID = @userId AND u.Type='User'";
+        return _container.GetItemLinqQueryable<User>()
+                    .Where(u => u.UserID == userId && u.Type == "User")
+                    .FirstOrDefault(); // verify FirstOrDefault is supported
+
+        // return  _container.ReadItemAsync<User>(userId, new PartitionKey(_partitionKey)).Result.Resource;
     }
 
     // public IList<User> ReadUsers(List<string>  userIds)

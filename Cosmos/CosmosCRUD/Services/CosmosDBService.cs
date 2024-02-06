@@ -12,12 +12,22 @@ public class CosmosDBService
     {
         _logger = logger;
         _cosmosClient = cosmosClient;
-        _database = _cosmosClient.CreateDatabaseIfNotExistsAsync("Prosumers").Result;
+        _database = _cosmosClient.GetDatabase("Prosumers");
        // _container = _database.CreateContainerIfNotExistsAsync("MasterData", "/MasterData").Result;
     }
 
-    public async Task<Container> GetContainerAsync(string containerName, string partitionKeyPath)
+    public Container GetContainer(string containerName)
     {
-        return await _database.CreateContainerIfNotExistsAsync(containerName, partitionKeyPath);
+        return _database.GetContainer(containerName);//.CreateContainerIfNotExistsAsync(containerName, partitionKey);
     }
+
+    // public void ExecuteQuery(string container, string query)
+    // {
+    //     var queryDefinition = new QueryDefinition(query);
+    //     var iterator = GetContainer(container).GetItemQueryIterator<User>(queryDefinition);
+    //     while (iterator.HasMoreResults)
+    //     {
+    //         var response = iterator.ReadNextAsync().Result;
+    //     }
+    // }
 }

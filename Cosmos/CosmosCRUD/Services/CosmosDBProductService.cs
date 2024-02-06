@@ -8,8 +8,8 @@ public class CosmosDBProductService(ILogger<CosmosDBProductService> logger, Cosm
 {
     private readonly ILogger<CosmosDBProductService> _logger = logger;
     private const string _partitionKey = "MasterData";
-    private const string _containerName = "MasterData";
-    private readonly Container _container = cosmosDBService.GetContainerAsync(_containerName, _partitionKey).Result;
+    private const string _containerName = "Prosumers";
+    private readonly Container _container = cosmosDBService.GetContainer(_containerName);
 
     public Product CreateProduct(Product product)
     {
@@ -23,7 +23,11 @@ public class CosmosDBProductService(ILogger<CosmosDBProductService> logger, Cosm
 
     public Product ReadProduct(string sku)
     {
-        return  _container.ReadItemAsync<Product>(sku, new PartitionKey(_partitionKey)).Result.Resource;
+        return _container.GetItemLinqQueryable<Product>()
+                    .Where(p =>  p.SkuId== sku && p.Type == "Product_Asset")
+                    .FirstOrDefault(); // verify FirstOrDefault is supported
+
+        // return  _container.ReadItemAsync<Product>(sku, new PartitionKey(_partitionKey)).Result.Resource;
     }
 
     public Product UpdateProduct(Product product)

@@ -8,20 +8,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Logging.AddLog4Net();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IUserService, CosmosDBUserService>();
-builder.Services.AddSingleton<CosmosClient>(
-    new CosmosClient(
-            builder.Configuration["Cosmos:Endpoint"], 
-                builder.Configuration["Cosmos:Key"])
-    );
-builder.Services.AddSingleton<IProductService, CosmosDBProductService>();
-builder.Services.AddSingleton<CosmosDBService>();
-
+// builder.Services.AddSingleton<CosmosClient>(
+//     new CosmosClient(
+//             builder.Configuration["Cosmos:Endpoint"], 
+//                 builder.Configuration["Cosmos:Key"])
+//     );
+// builder.Services.AddSingleton<CosmosDBService>();
+// builder.Services.AddSingleton<IUserService, CosmosDBUserService>();
+// builder.Services.AddSingleton<IProductService, CosmosDBProductService>();
 
 var app = builder.Build();
-
+app.Logger.LogDebug("test");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -29,9 +29,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.MapControllers();
 
