@@ -7,11 +7,11 @@ namespace CosmosCRUD.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class UserController(ILogger<UserController> logger) : ControllerBase
+public class UserController(ILogger<UserController> logger, IUserService userService) : ControllerBase
 {
     private readonly ILogger<UserController> _logger = logger;
 
-    private IUserService _userService = null;
+    private IUserService _userService = userService;
 
     [HttpGet()]
     [Route("{id}")]
